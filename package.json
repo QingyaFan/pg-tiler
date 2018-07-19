@@ -13,6 +13,7 @@
   "author": "qingyafan@163.com",
   "license": "ISC",
   "dependencies": {
+    "generic-pool": "^3.4.2",
     "koa": "^2.5.2",
     "koa-router": "^7.4.0",
     "mapnik": "^4.0.1"
