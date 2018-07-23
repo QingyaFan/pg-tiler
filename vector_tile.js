@@ -2,41 +2,51 @@ const mapnik = require("mapnik")
 const mercator = require("./utils/sphericalmercator")
 const url = require("url")
 const fs = require("fs")
+const parseXYZ = require("./utils/tile").parseXYZ
 const path = require("path")
+const config = require("./config")
 const TMS_SCHEME = false
 
 
 let postgis_settings = {
-    dbname: '',
+    host: `localhost`,
+    port: 5432,
+    dbname: `${ config.db.database }`,
     table: '',
-    user: '',
-    type: '',
+    user: `${ config.db.user }`,
+    password: ``,
+    type: 'postgis',
     extent: ''
 }
 
-if (!mapnik.register_default_input_plugins) {
-    mapnik.register_default_input_plugins()
-}
+mapnik.register_default_input_plugins()
 
-function tile(req, res) {
-    parseXYZ(req, TMS_SCHEME, function (err, params) {
+function tile(ctx, next) {
+    let request = ctx.request;
+    let response = ctx.response;
+    parseXYZ(request, TMS_SCHEME, function (err, params) {
         if (err) {
-            res.writeHead(500, { 'Content-Type': 'text/plain' });
-            res.end(err.message);
+            console.error(err)
+            response.body = {
+                code: 500, 
+                msg: 'server error'
+            };
         } else {
             try {
                 var map = new mapnik.Map(256, 256, mercator.proj4);
                 var layer = new mapnik.Layer('tile', mercator.proj4);
                 var postgis = new mapnik.Datasource(postgis_settings);
-                var bbox = mercator.xyz_to_envelope(parseInt(params.x),
+                var bbox = mercator.xyz_to_envelope(
+                    parseInt(params.x),
                     parseInt(params.y),
-                    parseInt(params.z), false);
+                    parseInt(params.z), 
+                    false );
 
                 layer.datasource = postgis;
                 layer.styles = ['point'];
 
                 map.bufferSize = 64;
-                map.load(path.join(__dirname, 'point_vector.xml'), { strict: true }, function (err, map) {
+                map.load(path.join(__dirname, 'xml/point_vector.xml'), { strict: true }, function (err, map) {
                     if (err) throw err;
                     map.add_layer(layer);
 
@@ -48,15 +58,18 @@ function tile(req, res) {
                         if (err) {
                             throw err;
                         } else {
-                            res.writeHead(200, { 'Content-Type': 'image/png' });
-                            res.end(im.encodeSync('png'));
+                            ctx.response.statusCode = 200;
+                            ctx.set('Content-Type', 'image/png');
+                            ctx.body = im.encodeSync('png')
                         }
                     });
                 });
-            }
-            catch (err) {
-                res.writeHead(500, { 'Content-Type': 'text/plain' });
-                res.end(err.message);
+            } catch (err) {
+                console.error(err);
+                response.body = {
+                    code: 500,
+                    msg: 'server error'
+                };
             }
         }
     });
