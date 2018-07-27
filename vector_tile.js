@@ -1,78 +1,53 @@
 const mapnik = require("mapnik")
 const mercator = require("./utils/sphericalmercator")
-const url = require("url")
-const fs = require("fs")
-const parseXYZ = require("./utils/tile").parseXYZ
-const path = require("path")
-const config = require("./config")
-const TMS_SCHEME = false
-
-
-let postgis_settings = {
-    host: `localhost`,
-    port: 5432,
-    dbname: `${ config.db.database }`,
-    table: '',
-    user: `${ config.db.user }`,
-    password: ``,
-    type: 'postgis',
-    extent: ''
-}
 
 mapnik.register_default_input_plugins()
+const mercatorProj4 = `+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext +no_defs`;
+const xmlConfig = `
+    <?xml version="1.0" encoding="utf-8"?>
+    <Map minimum-version="2.0.0">
+        <Style name="default_pt">
+            <Rule></Rule>
+        </Style>
+        <Layer name="taifeng" status="on" srs="${mercatorProj4}">
+            <StyleName>default_pt</StyleName>
+            <Datasource>
+                <Parameter name="type">postgis</Parameter>
+                <Parameter name="host">localhost</Parameter>
+                <Parameter name="dbname">g-default</Parameter>
+                <Parameter name="user">projx</Parameter>
+                <Parameter name="password">sss</Parameter>
+                <Parameter name="table">(select the_geom_webmercator as the_geom from table_name) as test</Parameter>
+                <Parameter name="estimate_extent">false</Parameter>
+                <Parameter name="extent">11761294.00,581901.75,19552880.00,6904074.50</Parameter>
+            </Datasource>
+        </Layer>
+    </Map>
+`;
 
-function tile(ctx, next) {
-    let request = ctx.request;
-    let response = ctx.response;
-    parseXYZ(request, TMS_SCHEME, function (err, params) {
-        if (err) {
-            console.error(err)
-            response.body = {
-                code: 500, 
-                msg: 'server error'
-            };
-        } else {
-            try {
-                var map = new mapnik.Map(256, 256, mercator.proj4);
-                var layer = new mapnik.Layer('tile', mercator.proj4);
-                var postgis = new mapnik.Datasource(postgis_settings);
-                var bbox = mercator.xyz_to_envelope(
-                    parseInt(params.x),
-                    parseInt(params.y),
-                    parseInt(params.z), 
-                    false );
-
-                layer.datasource = postgis;
-                layer.styles = ['point'];
-
-                map.bufferSize = 64;
-                map.load(path.join(__dirname, 'xml/point_vector.xml'), { strict: true }, function (err, map) {
-                    if (err) throw err;
-                    map.add_layer(layer);
-
-                    // console.log(map.toXML()); // Debug settings
-
-                    map.extent = bbox;
-                    var im = new mapnik.Image(map.width, map.height);
-                    map.render(im, function (err, im) {
-                        if (err) {
-                            throw err;
-                        } else {
-                            ctx.response.statusCode = 200;
-                            ctx.set('Content-Type', 'image/png');
-                            ctx.body = im.encodeSync('png')
-                        }
-                    });
-                });
-            } catch (err) {
-                console.error(err);
-                response.body = {
-                    code: 500,
-                    msg: 'server error'
-                };
+async function tile(ctx, next) {
+    return new Promise((resolve, reject) => {
+        let z = parseInt(ctx.params.z);
+        let x = parseInt(ctx.params.x);
+        let y = parseInt(ctx.params.y);
+        let map = new mapnik.Map(4096, 4096, mercator.proj4);
+        map.fromStringSync(xmlConfig, {});
+        let vt = new mapnik.VectorTile(z, x, y);
+        map.render(vt, (err, vt) => {
+            if (err) {
+                console.error('render error', err);
             }
-        }
-    });
+            ctx.set('Content-Type', 'application/x-protobuf');
+            ctx.response.status = 200;
+            vt.getData((err, data) => {
+                if (err) {
+                    console.log('err', err);
+                }
+                ctx.body = data;
+                resolve();
+            });
+        });
+    })
 }
 
 module.exports = {

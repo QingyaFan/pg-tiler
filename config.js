@@ -3,7 +3,7 @@ module.exports = {
     db: {
         host: 'localhost',
         port: 5432,
-        user: 'cheerfun',
+        user: 'postgres',
         password: '',
         database: 'vector'
     },
