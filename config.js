@@ -3,9 +3,9 @@ module.exports = {
     db: {
         host: 'localhost',
         port: 5432,
-        user: 'postgres',
+        user: '',
         password: '',
-        database: 'vector'
+        database: ''
     },
     cache: {
         host: 'localhost',
