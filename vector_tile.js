@@ -7,18 +7,19 @@ const mercatorProj4 = `+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +
 const xmlConfig = `
     <?xml version="1.0" encoding="utf-8"?>
     <Map minimum-version="2.0.0">
-        <Layer name="taifeng" status="on" srs="${mercatorProj4}">
-            <Datasource>
-                <Parameter name="type">postgis</Parameter>
-                <Parameter name="host">localhost</Parameter>
-                <Parameter name="dbname">${config.db.database}</Parameter>
-                <Parameter name="user">${config.db.user}</Parameter>
-                <Parameter name="password">${config.db.password}</Parameter>
-                <Parameter name="table">(select the_geom_webmercator as the_geom from table_name) as test</Parameter>
-                <Parameter name="estimate_extent">false</Parameter>
-                <Parameter name="extent">11761294.00,581901.75,19552880.00,6904074.50</Parameter>
-            </Datasource>
-        </Layer>
+    <Layer name="taifeng" status="on" srs="${mercatorProj4}">
+    <Datasource>
+    <Parameter name="type">postgis</Parameter>
+    <Parameter name="host">localhost</Parameter>
+    <Parameter name="dbname">${config.db.database}</Parameter>
+    <Parameter name="user">${config.db.user}</Parameter>
+    <Parameter name="password">${config.db.password}</Parameter>
+`;
+const xmlConfigTail = `
+    <Parameter name="estimate_extent">false</Parameter>
+    <Parameter name="extent">-20037508.3427892,-20037508.3427892,20037508.3427892,20037508.3427892</Parameter>
+    </Datasource>
+    </Layer>
     </Map>
 `;
 
@@ -27,8 +28,12 @@ async function tile(ctx, next) {
         let z = parseInt(ctx.params.z);
         let x = parseInt(ctx.params.x);
         let y = parseInt(ctx.params.y);
+        const xml = parseParams(ctx.query);
         let map = new mapnik.Map(4096, 4096, mercator.proj4);
-        map.fromString(xmlConfig, {}, () => {
+        map.fromString(xml, {}, (err, res) => {
+            if (err) {
+                console.error('style error', err)
+            }
             let vt = new mapnik.VectorTile(z, x, y);
             map.render(vt, (err, vt) => {
                 if (err) {
@@ -49,7 +54,10 @@ async function tile(ctx, next) {
 }
 
 function parseParams(params) {
-
+    let sql = params.sql ?
+        `<Parameter name="table">(${params.sql}) as vtable</Parameter>` :
+        ``;
+    return xmlConfig + sql + xmlConfigTail;
 }
 
 module.exports = {

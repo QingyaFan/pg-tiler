@@ -2,7 +2,7 @@ FROM node:v8.11.3
 
 WORKDIR /var/cheerfun/vector-tile-server
 
-COPY ./* ./
+COPY ./ ./
 RUN cnpm install --production
 
 EXPOSE 8002
