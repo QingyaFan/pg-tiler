@@ -1,9 +1,9 @@
-FROM node:v8.11.3
+FROM node:v8.11.3-ubuntu
 
 WORKDIR /var/cheerfun/vector-tile-server
 
 COPY ./ ./
-RUN cnpm install --production
+RUN cnpm install
 
 EXPOSE 8002
 

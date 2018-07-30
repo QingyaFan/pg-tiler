@@ -1,14 +1,14 @@
 module.exports = {
     port: 8002,
     db: {
-        host: 'localhost',
+        host: 'postgres',
         port: 5432,
         user: '',
         password: '',
         database: ''
     },
     cache: {
-        host: 'localhost',
+        host: 'redis',
         port: 6379
     }
 }

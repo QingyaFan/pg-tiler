@@ -10,7 +10,7 @@ const xmlConfig = `
     <Layer name="taifeng" status="on" srs="${mercatorProj4}">
     <Datasource>
     <Parameter name="type">postgis</Parameter>
-    <Parameter name="host">localhost</Parameter>
+    <Parameter name="host">${config.db.host}</Parameter>
     <Parameter name="dbname">${config.db.database}</Parameter>
     <Parameter name="user">${config.db.user}</Parameter>
     <Parameter name="password">${config.db.password}</Parameter>
