@@ -13,6 +13,7 @@
   "author": "qingyafan@163.com",
   "license": "ISC",
   "dependencies": {
+    "@koa/cors": "^2.2.2",
     "generic-pool": "^3.4.2",
     "koa": "^2.5.2",
     "koa-bodyparser": "^4.2.1",

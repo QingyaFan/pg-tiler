@@ -11,6 +11,7 @@ const xmlConfig = `
     <Datasource>
     <Parameter name="type">postgis</Parameter>
     <Parameter name="host">${config.db.host}</Parameter>
+    <Parameter name="port">${config.db.port}</Parameter>
     <Parameter name="dbname">${config.db.database}</Parameter>
     <Parameter name="user">${config.db.user}</Parameter>
     <Parameter name="password">${config.db.password}</Parameter>
@@ -29,7 +30,7 @@ async function tile(ctx, next) {
         let x = parseInt(ctx.params.x);
         let y = parseInt(ctx.params.y);
         const xml = parseParams(ctx.query);
-        let map = new mapnik.Map(4096, 4096, mercator.proj4);
+        let map = new mapnik.Map(256, 256, mercator.proj4);
         map.fromString(xml, {}, (err, res) => {
             if (err) {
                 console.error('style error', err)
