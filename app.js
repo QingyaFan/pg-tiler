@@ -7,9 +7,9 @@ const config = require("./config");
 const vectorTile = require("./vector_tile");
 const cors = require("@koa/cors");
 
+app.use(cors());
 app.use(router.routes());
 app.use(BodyParser());
-app.use(cors());
 
 router.get(`/vt/tile/:z/:x/:y`, vectorTile.tile)
 
