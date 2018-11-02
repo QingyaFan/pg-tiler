@@ -1,6 +1,6 @@
 FROM node:v8.11.3-ubuntu
 
-WORKDIR /var/cheerfun/vector-tile-server
+WORKDIR /var/lib/vector-tile-server
 
 COPY ./ ./
 RUN cnpm install
