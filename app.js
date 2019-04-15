@@ -11,6 +11,12 @@ app.use(cors());
 app.use(router.routes());
 app.use(BodyParser());
 
+router.get(`/vt/status`, (ctx)=> {
+    ctx.body = {
+        status: "running"
+    }
+})
+
 router.get(`/vt/tile/:z/:x/:y`, vectorTile.tile)
 
 app.listen(config.port, () => {

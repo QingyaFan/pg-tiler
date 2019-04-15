@@ -25,12 +25,14 @@ const xmlConfigTail = `
 `;
 
 async function tile(ctx, next) {
+
     return new Promise((resolve, reject) => {
         let z = parseInt(ctx.params.z);
         let x = parseInt(ctx.params.x);
         let y = parseInt(ctx.params.y);
         const xml = parseParams(ctx.query);
         let map = new mapnik.Map(256, 256, mercator.proj4);
+
         map.fromString(xml, {}, (err, res) => {
             if (err) {
                 console.error('style error', err)
@@ -55,9 +57,13 @@ async function tile(ctx, next) {
 }
 
 function parseParams(params) {
-    let sql = params.sql ?
-        `<Parameter name="table">(${params.sql}) as vtable</Parameter>` :
-        ``;
+    
+    let sql = '';
+    if (params) {
+        sql += `<Parameter name="table">${params.table}</Parameter>`;
+        sql += `<Parameter name="geometry_field">${params.geometry_field}</Parameter>`;
+    }
+
     return xmlConfig + sql + xmlConfigTail;
 }
 
