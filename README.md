@@ -4,14 +4,12 @@
 
 ## 使用说明
 
-### 使用镜像难道不是最方便的么
+目前只支持输出EPSG:3857坐标系下的矢量瓦片
 
-docker pull 镜像地址
+## 如何使用
 
-### 假如你不想使用镜像
+测试都是使用 node v57
 
 1. Clone the project,
 2. run `npm install`, then `node app.js`,
-3. now you can access your tile from `/vt/tile/:z/:x:y?sql=select the_geom_webmercator as the_geom from table_name`.
-
-PS: The server can only server data in `EPSG:3857` projection which store in postgis.
+3. now you can access your tile from `/vt/tile/:z/:x:y?table=<table_name>&geometry_field=<geometry_field_name>`.
