@@ -15,6 +15,7 @@ const xmlConfig = `
     <Parameter name="dbname">${config.db.database}</Parameter>
     <Parameter name="user">${config.db.user}</Parameter>
     <Parameter name="password">${config.db.password}</Parameter>
+    <Parameter name="simplify_geometries">true</Parameter>
 `;
 const xmlConfigTail = `
     <Parameter name="estimate_extent">false</Parameter>
